@@ -1,0 +1,97 @@
+package
+{
+  "name": "web-socket",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "ws": "^1.1.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
+
+server
+
+var WebSocketServer = require('ws').Server,
+    wss = new WebSocketServer({port: 8080}),
+    clients = [],
+    messages = [];
+  
+  
+wss.on('connection', function(ws) {
+        
+    var index = clients.push(ws) - 1;
+    
+    
+    ws.on('message', function(message) {
+        messages.push(message);
+        console.log('received: %s from %s', message, index);
+        
+         wss.clients.forEach(function (conn) {
+          conn.send(message);
+        });
+        
+    });
+    
+    //console.log(wss.clients);
+        
+        
+    var msgText = messages.join('<br />');   
+    
+    ws.send(msgText);
+});
+
+
+
+html
+
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>TODO supply a title</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body>
+        <input type="text" name="message" /> <button>Send</button>
+        <div class="chatlog">Chat Log</div>
+        
+        
+        <script type="text/javascript">
+            
+            
+            var ws = new WebSocket('ws://localhost:8080', 'echo-protocol'),
+                chatLog = document.querySelector('.chatlog'),
+                message = document.querySelector('input[name="message"]');
+            
+            
+            document.querySelector('button').addEventListener('click', sendMessage);
+            
+            function sendMessage() {
+                ws.send(message.value);
+            }
+            
+            
+            ws.addEventListener("open", function (event) {
+                 chatLog.insertAdjacentHTML('beforeend', '<br /> Connection Made'); 
+            });
+
+            
+            ws.addEventListener("message", function(e) {
+                // The data is simply the message that we're sending back
+                var msg = e.data;
+
+                // Append the message
+                chatLog.insertAdjacentHTML('beforeend', '<br />' + msg);
+            });
+            
+            
+        </script>
+    </body>
+</html>

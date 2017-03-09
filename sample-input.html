@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>TODO supply a title</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body>
+        
+        Email : <input type="text" value="" name="email" />
+        
+        <button>Validate</button>
+        
+        <p></p>
+        
+        <script type="text/javascript">
+            
+            /* 
+             *  User enters email address
+             *  User clicks validate
+             *  if (Valid email ) display success
+             *  if ( not valid ) display invalid format
+            */
+           
+           
+           /*
+            * Get the input element from the Document
+            * setup a function to check the correct email format
+            * get the button element from the document
+            * setup the button to validate on click 
+            * get P element from the document
+            * if email.value is correct display success 
+            *   - check for an @ symbol
+            *   - have a .com at the end
+            *   - change html of P element with success message
+            *  else if email.value is not correct display invalid
+            *   - display invalid message of P element
+            * 
+            */
+           
+           
+           var email = document.querySelector('input[name="email"]');           
+           var validateBtn = document.querySelector('button');
+           
+           var p = document.querySelector('p');
+           
+           validateBtn.addEventListener('click', validateEmail );
+           
+           function validateEmail() {
+               
+               if ( email.value.indexOf('@') > -1 
+                       && email.value.indexOf('.com') > -1 ) {
+                   p.innerHTML = 'email is valid';
+               } else {
+                   p.innerHTML = '<strong>email is NOT valid</strong>';
+               }
+               
+           }
+            
+            
+        </script>
+        
+    </body>
+</html>

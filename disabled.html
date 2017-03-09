@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>TODO supply a title</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body>
+       
+        
+        <form action="#" method="post" name="formBlur">
+            <fieldset>
+                <legend>Form 1 - on blur</legend>
+                text : <input type="text" value="" name="textBlur" /> <br />
+                checkbox: <input type="checkbox" name="chkboxBlur" value="" /> <br />
+                <input type="submit" value="Submit" />
+            </fieldset>
+        </form>
+        
+        <form action="#" method="post" name="formInput">
+            <fieldset>
+                <legend>Form 1 - on blur</legend>
+                text : <input type="text" value="" name="textInput" /> <br />
+                checkbox: <input type="checkbox" name="chkboxInput" value="" /> <br />
+                <input type="submit" value="Submit" />
+            </fieldset>
+        </form>
+        
+        
+        <script type="text/javascript">
+        
+            // used to keep track of fields that have been filled
+                var reqfields = {};
+
+               //function to handle disalbe/enable submit button
+               function checkDisable(formBtn) {                  
+                   if ( !formBtn ) return;
+                   var x, isReady = true, formName = formBtn.parentNode.parentNode.name;
+                   var fields = reqfields[formName];
+                   for ( x in fields ) {
+                         if ( !fields.hasOwnProperty(x) || fields[x].ready ) continue;
+                             isReady = false;
+                             break;
+                   }
+
+                   if ( isReady ) {
+                       formBtn.classList.remove('button-disabled');
+                       formBtn.removeAttribute('disabled');
+                   } else {
+                       formBtn.classList.add('button-disabled');
+                       formBtn.setAttribute('disabled', 'disabled');
+                   }
+
+               }
+
+               // attaches the events to the inputs onblur
+               function disableSubmit(formName, callback) {
+                   var form = document.querySelector('form[name='+formName+']'),
+                           formBtn = document.querySelector('form[name='+formName+'] input[type=submit]');
+                   callback = callback || checkDisable;
+                   if ( !form || !formBtn ) return;
+
+                    if ( !reqfields.hasOwnProperty(formName) ) {
+                       reqfields[formName] = {};
+                   }
+                   var formFields = form.getElementsByTagName('input');
+                   var i = formFields.length;
+
+                   while ( i-- ) {
+                       if ( !formFields[i].hasAttribute("type") || !formFields[i].hasAttribute("name") )  continue;
+                       switch( formFields[i].getAttribute('type').toLowerCase() ) {
+                           case 'text':
+                           case 'email':
+                           case 'date':
+                           case 'password':
+                               reqfields[formName][formFields[i].getAttribute('name')] = { "ready" : (formFields[i].value.trim() !== '' ? true : false) };
+                               formFields[i].addEventListener('blur', (function(cb,btn){
+                                   return function() {
+                                       reqfields[formName][this.name].ready = (this.value.trim() !== '' ? true : false);
+                                       cb(btn);
+                                   };
+                               })(callback,formBtn), false);
+                               break;
+                           case 'checkbox':
+                               reqfields[formName][formFields[i].getAttribute('name')] = { "ready" : !!formFields[i].checked };
+                               formFields[i].addEventListener('change', (function(cb,btn){
+                                   return function() {
+                                       reqfields[formName][this.name].ready = !!this.checked;
+                                       cb(btn);
+                                   };
+                               })(callback,formBtn), false);
+                               break;
+                       }
+                   }
+
+                   callback(formBtn);
+
+               }
+               
+               
+                function disableSubmit2(formName, callback) {
+                   var form = document.querySelector('form[name='+formName+']'),
+                           formBtn = document.querySelector('form[name='+formName+'] input[type=submit]');
+                   callback = callback || checkDisable;
+                   if ( !form || !formBtn ) return;
+
+                   if ( !reqfields.hasOwnProperty(formName) ) {
+                       reqfields[formName] = {};
+                   }
+                   var formFields = form.getElementsByTagName('input');
+                   var i = formFields.length;
+
+                   while ( i-- ) {
+                       if ( !formFields[i].hasAttribute("type") || !formFields[i].hasAttribute("name") )  continue;
+                       switch( formFields[i].getAttribute('type').toLowerCase() ) {
+                           case 'text':
+                           case 'email':
+                           case 'date':
+                           case 'password':
+                               reqfields[formName][formFields[i].getAttribute('name')] = { "ready" : (formFields[i].value.trim() !== '' ? true : false) };
+                               formFields[i].addEventListener('input', (function(cb,btn){
+                                   return function() {
+                                       reqfields[formName][this.name].ready = (this.value.trim() !== '' ? true : false);
+                                       cb(btn);
+                                   };
+                               })(callback,formBtn), false);
+                               break;
+                           case 'checkbox':
+                               reqfields[formName][formFields[i].getAttribute('name')] = { "ready" : !!formFields[i].checked };
+                               formFields[i].addEventListener('change', (function(cb,btn){
+                                   return function() {
+                                       reqfields[formName][this.name].ready = !!this.checked;
+                                       cb(btn);
+                                   };
+                               })(callback,formBtn), false);
+                               break;
+                       }
+                   }
+
+                   callback(formBtn);
+
+               }
+
+
+            window.addEventListener('load', function(){
+
+                disableSubmit('formBlur');
+                disableSubmit2('formInput');
+            });
+        </script>
+            
+    </body>
+</html>
