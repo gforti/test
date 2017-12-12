@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>TODO supply a title</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body>
+        <div class="start">
+            Name:
+            <input type="text" name="user" />
+            <button id="start">Start</button>
+        </div>
+        
+        <input type="text" name="message" /> <button id="send">Send</button>
+        <div class="chatlog">Chat Log</div>
+        
+        
+        <script type="text/javascript">
+            
+           
+            
+            document.querySelector('div.start button').addEventListener('click', start);
+            
+            function start() {
+                
+                 const USER = document.querySelector('input[name="user"]').value;
+                
+                document.querySelector('div.start').style.display = 'none'
+                
+                
+                var ws = new WebSocket('ws://localhost:3000', 'echo-protocol'),
+                    chatLog = document.querySelector('.chatlog'),
+                    message = document.querySelector('input[name="message"]');
+
+
+                document.querySelector('button#send').addEventListener('click', sendMessage);
+
+                function sendMessage() {
+                    const rep = {user: USER, message: message.value}
+                    ws.send(JSON.stringify(rep));
+                }
+
+
+                ws.addEventListener("open", function (event) {
+                     chatLog.insertAdjacentHTML('beforeend', '<br /> Connection Made'); 
+                     const rep = {type: 'login', user: USER}
+                     ws.send(JSON.stringify(rep));
+                });
+
+
+                ws.addEventListener("message", function(e) {
+                    // The data is simply the message that we're sending back
+                    var msg = e.data;
+                    console.log(msg)
+                    msg = JSON.parse(e.data);
+                    msg.map( data => `<b>${data.user}</b>:${data.message}`)
+                    console.log(msg)
+                    // Append the message
+                    chatLog.insertAdjacentHTML('beforeend', '<br />' + msg);
+                });
+            }
+            
+        </script>
+    </body>
+</html>
