@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>TODO supply a title</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel='stylesheet' href='node_modules/bulma/css/bulma.css' />
+    </head>
+    <body>
+        <button>Start</button>
+        
+        <script src="/socket.io/socket.io.js"></script>
+        
+        <script>
+            
+            
+             socket.on('host', function (data) {
+              // Display the welcome message
+              var message = "theHost!";
+              console.log(message, data);
+            });
+            
+            
+        </script>
+    </body>
+</html>

@@ -1,0 +1,17 @@
+{
+  "name": "trivia",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node index",
+    "dev": "DEBUG=socket.io* & nodemon index"
+  },
+  "dependencies": {
+    "bulma": "^0.6.1",
+    "express": "^4.16.2",
+    "socket.io": "^2.0.4"
+  },
+  "devDependencies": {
+    "nodemon": "^1.12.1"
+  }
+}

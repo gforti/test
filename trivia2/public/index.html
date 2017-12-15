@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>TODO supply a title</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel='stylesheet' href='bulma.css' />
+        <style>
+            
+            .level {
+                font-weight: bold;
+                background-image: linear-gradient(141deg, #ff0561 0%, #ff3860 71%, #ff5257 100%);
+                margin: 0 !important;
+                padding: 1rem;
+            }
+            
+            .login {
+                text-align: center;
+            }
+                       
+            .icons {
+                display: block;
+                padding: 2rem;
+            }
+            .icons img {
+                width: 70px;
+            }
+            
+            .icons input[type="radio"] {
+                display: none;
+            }
+            
+            .icons input[type=radio] ~ img {
+                padding: 0.4rem;
+                border: 2px solid black;
+             }
+            
+            .icons input[type=radio]:checked ~ img {
+                border: 2px solid red;
+                background-color: red;
+             }
+        </style>
+    </head>
+    <body>
+        <nav class="level is-mobile">         
+            <div class="level-item has-text-centered currentUser"></div>           
+            <div class="level-item has-text-centered numUsers"></div>           
+        </nav>
+        
+        <section class="hero is-success is-fullheight">
+            <div class="hero-body">
+                <div class="container">
+                    <div class="login">
+                        <div class="section">
+                            <h1 class="title">User Name</h1>
+                            <input name="user" type="text" class="input is-large" />
+                            <div class="icons"></div>
+                            <button class="button is-primary is-large">Enter</button>
+                        </div>
+                    </div>
+
+                    <div class="game">            
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <script src="/socket.io/socket.io.js"></script>
+        <script>
+            
+             var socket = io();
+             let username, connected;
+             document.querySelector('button').addEventListener('click', setUsername)
+             
+             
+             document.querySelector('div.icons').innerHTML = (function(){
+                 let html = '';
+                 let autoSelect = Math.floor(Math.random() * 24) + 1  
+                 console.log(autoSelect)
+                 for( let i = 1; i < 24; i++ ) {
+                     let icon = `icons/${i}.png`
+                     html += `<label for="${icon}">
+                                <input  type="radio" 
+                                        name="icon" 
+                                        value="${icon}" 
+                                        id="${icon}"
+                                        ${ autoSelect === i ? 'checked' : ''}
+                                > 
+                                <img src="${icon}"/> 
+                            </label>`
+                 }
+                 return html
+             })()
+             
+             
+              function setUsername () {
+                username = document.querySelector('input[name="user"]').value;
+                icon = document.querySelector('input[name="icon"]').value;
+
+                // If the username is valid
+                if (username) {                 
+                  // Tell the server your username
+                  socket.emit('add user', {username, icon});
+                  setCurrentUser({username, icon})
+                  document.querySelector('.login').style.display = 'none';
+                }
+              }
+              
+              
+              
+              // Whenever the server emits 'login', log the login message
+            socket.on('login', function (data) {
+              connected = true;
+              // Display the welcome message
+              var message = "Welcome to Socket.IO Chat – ";
+              console.log(message, data);
+              updateUsers(data)
+            });
+            
+            // Whenever the server emits 'user joined', log it in the chat body
+            socket.on('user joined', function (data) {
+              console.log(data.username + ' joined');
+                updateUsers(data)
+              
+            });
+
+
+            function updateUsers(data) {
+                if (data.numUsers )
+                    document.querySelector('.numUsers').innerHTML = `
+                        <div>
+                            <p class="heading">Users</p>
+                            <p class="title">${data.numUsers}</p>
+                        </div> `;
+            }
+            
+            function setCurrentUser(data) {
+                if (data.username && data.icon)
+                    document.querySelector('.currentUser').innerHTML = `
+                        <div>
+                            <p class="heading">${data.username}</p>
+                            <p class="title"><img src="${data.icon}" class="image is-32x32" /> </p>
+                        </div> `;
+            }
+        </script>
+    </body>
+</html>
