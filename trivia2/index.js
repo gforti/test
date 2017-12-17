@@ -24,6 +24,14 @@ var curQuestion = 0;
 var totalQuestions = questions.length;
 
 
+var nextQuestionDelayMs = 5000; //5secs // how long are players 'warned' next question is coming
+var timeToAnswerMs = 15000; // 15secs // how long players have to answer question
+var timeToEnjoyAnswerMs = 10000; //10secs // how long players have to read answer
+
+var answerData;
+var numUsers = 0;
+var players = {};
+
 
 function shuffle(array) {
   var currentIndex = array.length, temporaryValue, randomIndex;
@@ -46,13 +54,9 @@ function shuffle(array) {
 
 
 
-var nextQuestionDelayMs = 5000; //5secs // how long are players 'warned' next question is coming
-var timeToAnswerMs = 15000; // 15secs // how long players have to answer question
-var timeToEnjoyAnswerMs = 10000; //10secs // how long players have to read answer
 
-var answerData;
 
-/*
+
 es6tunnel(port).then(tunnel => {
   // the assigned public url for your tunnel
   // i.e. https://abcdefgjhij.localtunnel.me
@@ -63,9 +67,9 @@ es6tunnel(port).then(tunnel => {
   return
 }).then( fin => {
 
-*/
 
 
+// todo wait for all users to be ready
 
 
 server.listen(port, function () {
@@ -78,8 +82,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Chatroom
 
-var numUsers = 0;
-var players = {};
+
 
 
 io.on('connection', function (socket) {
@@ -110,6 +113,8 @@ io.on('connection', function (socket) {
 
     data.points = 0
     data.correct = false
+    data.questionDone = false
+    data.questionReady = false
     players[socket.id] = Object.assign({}, data);
 
     ++numUsers;
@@ -143,6 +148,19 @@ io.on('connection', function (socket) {
     });
 
 
+    socket.on('question timer', function () {
+        if ( !players[socket.id].questionReady ) {
+            players[socket.id].questionReady = true
+        } else {
+            players[socket.id].questionDone = true
+        }
+    });
+
+     socket.on('error', function (data) {
+       console.log('error', players[socket.id].username,  data)
+    });
+
+
   // when the user disconnects.. perform this
   socket.on('disconnect', function () {
     if (players[socket.id]) {
@@ -160,12 +178,14 @@ io.on('connection', function (socket) {
 
 
 
-//})
+ })  //localtunnel
 
 function resetPlayerWinners() {
     Object.keys(players)
                     .forEach(id => {
                         players[id].correct = false
+                        players[id].questionDone = false
+                        players[id].questionReady = false
                     })
 }
 
@@ -180,27 +200,55 @@ function emitNewQuestion() {
         question:'Next Question ...'
     });
 
-    setTimeout(function(){
-        if (questions[curQuestion]) {
-            var q = questions[curQuestion];
-            q.endTime = new Date().getTime() + timeToAnswerMs;
-            q.totalTime = timeToAnswerMs;
-
-            answerData = q.answer
-
-            q.choices = shuffle(q.choices)
-            io.sockets.emit('question', q);
-
-            curQuestion++;
-
-            setTimeout(function(){
-                emitAnswer();
-            }, timeToAnswerMs);
-        }
-    }, nextQuestionDelayMs);
+    checkQuestionReady()
 
 }
 
+
+function checkQuestionReady(time) {
+
+    time = time || nextQuestionDelayMs
+    setTimeout(function(){
+        var canEmitQuestion = Object.keys(players).every(key =>{
+            return players[key].questionReady === true
+        });
+        if (canEmitQuestion) {
+            if (questions[curQuestion]) {
+                var q = questions[curQuestion];
+                q.endTime = new Date().getTime() + timeToAnswerMs;
+                q.totalTime = timeToAnswerMs;
+
+                answerData = q.answer
+
+                q.choices = shuffle(q.choices)
+                io.sockets.emit('question', q);
+
+                curQuestion++;
+
+               checkQuestionTimer()
+            }
+        } else {
+            checkQuestionReady(200)
+        }
+    }, time);
+
+}
+
+function checkQuestionTimer(time) {
+
+    time = time || timeToAnswerMs
+    setTimeout(function(){
+        var canEmitAnswer = Object.keys(players).every(key =>{
+            return players[key].questionDone === true && players[key].questionReady === true
+        });
+        if (canEmitAnswer) {
+            emitAnswer();
+        } else {
+            checkQuestionTimer(200)
+        }
+    }, time);
+
+}
 
 
 function emitAnswer() {
