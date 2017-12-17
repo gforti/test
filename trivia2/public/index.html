@@ -297,6 +297,9 @@
         <script src="/socket.io/socket.io.js"></script>
         <script>
             
+            
+            
+            
              var socket = io();
              let username, connected, userid;
              document.querySelector('button.login').addEventListener('click', setUsername)  
@@ -307,6 +310,31 @@
              
              let choices = document.querySelector('.choices')
              let progress = document.querySelector('progress')
+             
+             let progressTimer = null
+             
+             
+             
+             window.onerror = function (msg, url, lineNo, columnNo, error) {
+                var string = msg.toLowerCase();
+                var substring = "script error";
+                if (string.indexOf(substring) > -1){
+                    alert('Script Error: See Browser Console for Detail');
+                } else {
+                    var message = [
+                        'Message: ' + msg,
+                        'URL: ' + url,
+                        'Line: ' + lineNo,
+                        'Column: ' + columnNo,
+                        'Error object: ' + JSON.stringify(error)
+                    ].join(' - ');
+
+                    socket.emit('error', {message});;
+                }
+
+                return false;
+            };
+             
              
              document.querySelector('div.icons').innerHTML = (function(){
                  let html = '';
@@ -371,6 +399,7 @@
                 hide('#candy')
                 show('.game-start')
                 
+                progressTimer = null                
                 progress.value = 100;
                 updateProgressBar(data)
                 displayChoices(data)
@@ -379,10 +408,8 @@
             
             
              socket.on('answer results', function (data) {
-              console.log(data[userid].points + ' joined');
                 updatePoints(data)
                 displayIfCorrect(data)
-              
             });
             
             
@@ -396,7 +423,7 @@
                 let answer = document.querySelector('input[name="answer"]:checked').value;
                 
                 if (answer) {                    
-                    socket.emit('answer', {username, answer});
+                    socket.emit('answer', {answer});
                     closeChoice()
                 }
                 
@@ -404,7 +431,7 @@
             
             function closeChoice() {
                 choiceButton.classList.add('is-hidden')
-                choices.innerHTML = ''
+                choices.innerHTML = ''  
             }
 
             function displayChoices(data){
@@ -440,17 +467,18 @@
                 progress.value = pct;
                 if (pct < 20) {
                    progress.classList.remove('is-info')
-                    progress.classList.add('is-danger');
+                   progress.classList.add('is-danger');
                 } 
                 if (pct < 1) {
                     // if 0 or negative, no need to update again.
                     closeChoice();
                     progress.classList.remove('is-danger')
                     progress.classList.add('is-info');
+                    socket.emit('question timer')
                     return;
                 }
             
-                setTimeout(updateProgressBar.bind(this, data), 100);
+               progressTimer = setTimeout(updateProgressBar.bind(this, data), 100);
                 
             }
 
